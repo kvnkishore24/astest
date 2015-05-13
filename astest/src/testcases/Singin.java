@@ -1,12 +1,23 @@
 package testcases;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -83,8 +94,39 @@ public class Singin {
 			}
 		}
 	}
+	@Test(priority=1)
+	public void addstock() {
+		System.out.println("*********************************************");
+		String baseURL = Base.API_URL + "/mystocks/add";
 
-	@Test(priority = 1)
+		HttpClient client = new DefaultHttpClient();
+		HttpPost postReq = new HttpPost(baseURL);
+		postReq.setHeader("X-Auth-Token", USER_TOKEN);
+
+		try {
+			List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+			urlParameters.add(new BasicNameValuePair("stocks[0][stock_id]", "300"));
+			postReq.setEntity(new UrlEncodedFormEntity(urlParameters));
+			HttpResponse response = client.execute(postReq);
+			HttpEntity resEntity = response.getEntity();
+			int STATUS = response.getStatusLine().getStatusCode();
+			if (resEntity != null & STATUS == 200) {
+				String responsebody = EntityUtils.toString(resEntity);
+				System.out.println("HTTP RESPOSE:" + response.getStatusLine());
+				System.out.println("RESPONSE LENGTH: " + resEntity.getContentLength());
+				System.out.println("Chunked? " + resEntity.isChunked());
+				System.out.println("-------------------------------------------");
+				System.out.println(STATUS);
+				System.out.println("JSON DATA:" + responsebody);
+				System.out.println("-------------------------------------------");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("*********************************************");
+	}
+
+	@Test(priority = 2)
 	public void getStocks() {
 		System.out.println("-----------------------------------------------------------------");
 		String sourceurl = base.API_URL + "/mystocks/get";
@@ -114,19 +156,19 @@ public class Singin {
 							JSONObject dataJSON = (JSONObject) dataobject;
 							Object items = dataJSON.get("items");
 							if (items instanceof JSONArray) {
+								int stocksize = 0;
 								JSONArray itemsArray = (JSONArray) items;
+								System.out.println("Number of Stocks ::" + itemsArray.size());
 								for (Object itemObject : itemsArray) {
 									JSONObject obj3 = (JSONObject) itemObject;
-									System.out.println("-----------------------------------------------------------------");
-									System.out.println("Number of Stocks ::" + obj3.size());
-									System.out.println("-----------------------------------------------------------------");
 									String Stocks = obj3.get("id").toString();
-
 									System.out.println(Stocks);
-									System.out.println(obj3.get("name").toString());
-									System.out.println(obj3.get("ticker").toString());
-									System.out.println(obj3.get("sector").toString());
-								}
+//									System.out.println(obj3.get("name").toString());
+//									System.out.println(obj3.get("ticker").toString());
+//									System.out.println(obj3.get("sector").toString());
+									stocksize =obj3.size();
+																	}
+							
 							}
 						}
 					}
